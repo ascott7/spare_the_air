@@ -9,10 +9,10 @@ class SpareHTMLParser(HTMLParser):
         #print "Encountered a start tag:", tag
         if not self.done:
             if tag == "div" and ('class', 'sta-day') in attrs:
-                print 'ALL CLEAR'
+                print "ALL CLEAR"
                 self.done = True
             if tag == "div" and ('class', 'sta-day winteralert') in attrs:
-                print 'ALERT'
+                print "ALERT"
                 self.done = True
 
 
