@@ -10,14 +10,23 @@
  *        to determine whether the current day is a spare the air day or not.
  */
 
-#include <math.h>
-//#include <signal.h>       // for catching ctrl-c
-#include <stdio.h>        // for printing to the console
+#define _BSD_SOURCE
+
 #include "pi_helpers.h"   // for talking to the Pi
+#include <stdio.h>        // for printing to the console
+#include <stdlib.h>
+#include <string.h>       // for strcmp
 
 #define REDPIN 17
 #define GREENPIN 23
 #define YELLOWPIN 21
+
+void update_leds(int red, int green, int yellow)
+{
+    digital_write(REDPIN, red);
+    digital_write(GREENPIN, green);
+    digital_write(YELLOWPIN, yellow);
+}
 
 void check_status()
 {
@@ -33,41 +42,36 @@ void check_status()
 
     if (fgets(response, sizeof(response)-1, fp) == NULL) {
         printf("Didn't get response from python script");
-        //digital_write(GREENPIN, 0);
-        //digital_write(YELLOWPIN, 1);
-        //digital_write(REDPIN, 0);
+        update_leds(0, 0, 1);
         pclose(fp);
         exit(2);
     }
     
-    if (response == "ALL CLEAR") {
-        //digital_write(GREENPIN, 1);
-        //digital_write(YELLOWPIN, 0);
-        //digital_write(REDPIN, 0);
+    if (strcmp(response, "ALL CLEAR\n") == 0) {
+        update_leds(0, 1, 0);
     }
-
-    else if (response == "ALERT") {
-        //digital_write(GREENPIN, 0);
-        //digital_write(YELLOWPIN, 0);
-        //digital_write(REDPIN, 1);
+    else if (strcmp(response, "ALERT\n") == 0) {
+        update_leds(1, 0, 0);
     }
-
     else {
-        //digital_write(GREENPIN, 0);
-        //digital_write(YELLOWPIN, 1);
-        //digital_write(REDPIN, 0);
+        update_leds(0, 0, 1);
+        printf("weird response from python, got %s\n", response);
     }
-    /* close */
     pclose(fp);
-
 }
 
-int main(int argc, char* argv[])
+int main()
 {
-    /*pio_init();
+    pio_init();
+    timer_init();
     pin_mode(REDPIN, OUTPUT);
     pin_mode(GREENPIN, OUTPUT);
     pin_mode(YELLOWPIN, OUTPUT);
-    */
+
+    while(1) {
+        check_status();
+        //update_leds(0, 0, 0);
+        sleep_millis(21600 * 1000);
+    }
     return 0;
 }
